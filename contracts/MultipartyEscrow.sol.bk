@@ -1,0 +1,2 @@
+// TODO: can make escrow abstract interface, P2PEscrow, MultiparyEscrow, for different types of bets
+// P2P for p2p efficiency, multiparty for n amount of player support but slightly more gas
