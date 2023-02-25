@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./Escrow.sol";
 
 contract EscrowFactory {
+  // Lesson: Just learned the hard way you can't decode indexed string values in solidity events
   event EscrowCreated(
     string indexed player1Id,
     address payable player1Address,

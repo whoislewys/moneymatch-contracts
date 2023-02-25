@@ -77,31 +77,51 @@ contract Escrow is EIP712 {
   }
 
   function startGame() public {
+    require(
+      player1BetAmount == player1BetBalance && player2BetAmount == player2BetBalance,
+      "Players must have deposited their bet amounts before starting the game"
+    );
     require(!gameStarted, "Game already started");
     gameStarted = true;
     emit GameStarted(player1.publicAddress, player1.id, player2.publicAddress, player2.id);
   }
 
   // Maybe instead of winner being passed as an arg, event stream gets written to ipfs while game is played, this reaches out to ipfs to get the result. if any discrepancy is noticed between event streams for key events, only refunds are allowed
-  function endGame(GameResults calldata gameResults) public {
-    // make sure signature is valid and get the address of the signer
-    bytes32 hashedGameResults = _hashTypedDataV4(
-      keccak256(abi.encode(keccak256("GameResults(string winnerId)"), gameResults.winnerId))
-    );
-    address gameResultsSigner = ECDSA.recover(hashedGameResults, gameResults.signature);
-    require(gameResultsSigner == arbiter, "Only the arbiter can end the game");
+  function endGame(string calldata _winnerId) public {
+    require(msg.sender == arbiter, "Only the arbiter can end the game");
     require(gameStarted == true, "Game has to be started before ending");
     require(gameEnded == false, "Game already over");
 
-    if (keccak256(abi.encodePacked(gameResults.winnerId)) == keccak256(abi.encodePacked(player1.id))) {
+    if (keccak256(abi.encodePacked(_winnerId)) == keccak256(abi.encodePacked(player1.id))) {
       winner = player1.publicAddress;
-    } else if (keccak256(abi.encodePacked(gameResults.winnerId)) == keccak256(abi.encodePacked(player2.id))) {
+    } else if (keccak256(abi.encodePacked(_winnerId)) == keccak256(abi.encodePacked(player2.id))) {
       winner = player2.publicAddress;
     }
 
     emit GameEnded(winner);
     gameEnded = true;
   }
+
+  // function endGame(GameResults calldata gameResults) public {
+  //   // make sure signature is valid and get the address of the signer
+  //   bytes32 hashedGameResults = _hashTypedDataV4(
+  //     keccak256(abi.encode(keccak256("GameResults(string winnerId)"), gameResults.winnerId))
+  //   );
+  //   address gameResultsSigner = ECDSA.recover(hashedGameResults, gameResults.signature);
+  //   console.log("gameResultsSigner: ", gameResultsSigner);
+  //   require(gameResultsSigner == arbiter, "Only the arbiter can end the game");
+  //   require(gameStarted == true, "Game has to be started before ending");
+  //   require(gameEnded == false, "Game already over");
+
+  //   if (keccak256(abi.encodePacked(gameResults.winnerId)) == keccak256(abi.encodePacked(player1.id))) {
+  //     winner = player1.publicAddress;
+  //   } else if (keccak256(abi.encodePacked(gameResults.winnerId)) == keccak256(abi.encodePacked(player2.id))) {
+  //     winner = player2.publicAddress;
+  //   }
+
+  //   emit GameEnded(winner);
+  //   gameEnded = true;
+  // }
 
   function claimWinnings() public {
     require(msg.sender == winner, "Only the winner can claim the winnings!");
