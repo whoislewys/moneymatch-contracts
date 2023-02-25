@@ -32,7 +32,6 @@ contract Escrow is EIP712 {
   uint256 public player2BetAmount;
   uint256 public player2BetBalance;
   address payable public winner;
-  uint256 public winnings;
   bool public gameStarted;
   bool public gameEnded;
 
@@ -56,9 +55,6 @@ contract Escrow is EIP712 {
     player1BetAmount = _player1BetAmount;
     player2 = Player(_player2Id, _player2Address);
     player2BetAmount = _player2BetAmount;
-
-    // solc 0.8 adds are safe yay
-    winnings = player1BetAmount + player2BetAmount;
 
     gameStarted = false;
     gameEnded = false;
@@ -89,8 +85,8 @@ contract Escrow is EIP712 {
   // Maybe instead of winner being passed as an arg, event stream gets written to ipfs while game is played, this reaches out to ipfs to get the result. if any discrepancy is noticed between event streams for key events, only refunds are allowed
   function endGame(string calldata _winnerId) public {
     require(msg.sender == arbiter, "Only the arbiter can end the game");
-    require(gameStarted == true, "Game has to be started before ending");
-    require(gameEnded == false, "Game already over");
+    require(gameStarted, "Game has to be started before ending");
+    require(!gameEnded, "Game already over");
 
     if (keccak256(abi.encodePacked(_winnerId)) == keccak256(abi.encodePacked(player1.id))) {
       winner = player1.publicAddress;
@@ -125,9 +121,7 @@ contract Escrow is EIP712 {
 
   function claimWinnings() public {
     require(msg.sender == winner, "Only the winner can claim the winnings!");
-    // TODO: make sure this transfer works lol
-    // probly read this lol: https://solidity-by-example.org/sending-ether/
-    // https://stackoverflow.com/questions/68588594/how-do-i-send-ether-and-data-from-a-smart-contract-to-an-eoa
+    // solc 0.8 adds are safe yay
     winner.transfer(player1BetBalance + player2BetBalance);
   }
 
