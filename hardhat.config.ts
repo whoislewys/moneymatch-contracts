@@ -11,7 +11,11 @@ const config: HardhatUserConfig = {
     },
     mumbai: {
       url: "https://rpc-mumbai.maticvigil.com",
-      accounts: [process.env.PRIVATE_KEY ?? '0x0'],
+      accounts: [process.env.PRIVATE_KEY ?? "0x0"],
+    },
+    "base-goerli": {
+      url: "https://goerli.base.org",
+      accounts: [process.env.PRIVATE_KEY ?? "0x0"],
     },
   },
 };
